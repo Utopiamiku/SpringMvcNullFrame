@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        https://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+<!--开启注解-->
+    <context:annotation-config></context:annotation-config>
+<!--    扫描除controller以外的所有包-->
+    <context:component-scan base-package="com.miku">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+    <!--    可以将上下文（配置文件）中的属性值放在另一个单独的标准java Properties文件中去。在XML文件中用替换指定的properties文件中的值。这样的话，只需要对properties文件进行修改，而不用对xml配置文件进行修改。-->
+    <!--    <bean id="propertyConfigure"-->
+    <!--          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">-->
+    <!--        <property name="locations">-->
+    <!--            <list>-->
+    <!--                <value>classpath:jdbc.properties</value>-->
+    <!--                <value>classpath:log4j.properties</value>-->
+    <!--            </list>-->
+    <!--        </property>-->
+    <!--    </bean>-->
+    <context:property-placeholder location="classpath:jdbc.properties"></context:property-placeholder>
+    <context:property-placeholder location="classpath:log4j.properties"></context:property-placeholder>
+
+    <!--数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="password" value="${jdbc.password}"/>
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="url" value="${jdbc.url}"/>
+    </bean>
+    <!--    整合sprin mybatis-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <property name="mapperLocations" value="classpath:com/miku/mapper/*.xml"/>
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.miku.dao"/>
+    </bean>
+
+    <!--    <bean id="UserInfoMapper" class="com.miku.dao.UserInfoMapper"></bean>-->
+
+    <!--    <bean id="shopService" class="com.miku.service.impl.ShopServiceImpl"></bean>-->
+    <!--    事务配置-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+<!--事务-->
+    <aop:aspectj-autoproxy ></aop:aspectj-autoproxy>
+<!--    通知-->
+    <tx:annotation-driven></tx:annotation-driven>
+
+    <!--    <bean id="roleInfoImpl" class="com.miku.service.impl.RoleInfoImpl"></bean>-->
+    <!--    <bean id="jsonResult" class="com.miku.tools.JsonResult"></bean>-->
+
+<!--    <tx:advice id="txAdvice" transaction-manager="txManager">-->
+<!--        &lt;!&ndash; the transactional semantics... &ndash;&gt;-->
+<!--        <tx:attributes>-->
+<!--            &lt;!&ndash; all methods starting with 'get' are read-only &ndash;&gt;-->
+<!--            &lt;!&ndash;            <tx:method name="select*" read-only="true"/>&ndash;&gt;-->
+<!--            &lt;!&ndash; other methods use the default transaction settings (see below) &ndash;&gt;-->
+<!--            <tx:method name="*"/>-->
+<!--        </tx:attributes>-->
+<!--    </tx:advice>-->
+
+    <!--    动态代理分为两种，针对接口的动态代理和针对普通类的动态代理，java中的动态代理是真的接口的动态代理，cglib是针对普通类的动态代理，目标javaEE的依赖包和Spring的jar包中已经包含了cglib相关jar包，因此即可以对代理也可以对普通类进行动态代理。-->
+    <!--    在<aop:config proxy-target-class="true">-->
+    <!--</aop:config>加上红色字体的一段即可-->
+    <!--    其中proxy-target-class="true/false"属性，决定是基于接口的还是基于类的代理被创建。如果proxy-target-class 属性值被设置为true，那么基于类的代理将起作用(这时需要cglib库)。如果proxy-target-class属值被设置为false或者这个属性被省略，那么标准的JDK 基于接口的代理将起作用。-->
+    <!--    即使你未声明 proxy-target-class="true" ，但运行类没有继承接口，spring也会自动使用CGLIB代理。-->
+    <!--    高版本spring自动根据运行类选择 JDK 或 CGLIB 代理-->
+
+<!--    <aop:config proxy-target-class="true">-->
+<!--        <aop:pointcut id="txPoin" expression="execution(* com.miku.service.impl.*.*(..))"/>-->
+<!--        &lt;!&ndash;配置事务的传播传播行为&ndash;&gt;-->
+<!--        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPoin"/>-->
+
+<!--        <aop:aspect id="s" ref="shopService">-->
+<!--            &lt;!&ndash;            <aop:before method="before" pointcut-ref="txPoin"/>&ndash;&gt;-->
+<!--            &lt;!&ndash;            <aop:after method="after" pointcut-ref="txPoin"/>&ndash;&gt;-->
+<!--            &lt;!&ndash;            <aop:around method="round" pointcut-ref="txPoin"/>&ndash;&gt;-->
+<!--            &lt;!&ndash;            <aop:after-throwing method="ex" throwing="e" pointcut-ref="txPoin"/>&ndash;&gt;-->
+<!--        </aop:aspect>-->
+<!--    </aop:config>-->
+
+
+</beans>
